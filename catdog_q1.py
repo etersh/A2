@@ -135,5 +135,42 @@ def main():
     print("Logistic Regression model saved as 'logistic_model.z'.")
 
 
+    # ============================================================
+    # K-Nearest Neighbors (KNN)
+    # ============================================================
+    print("\nRunning K-Nearest Neighbors (KNN)...")
+
+    from sklearn.neighbors import KNeighborsClassifier
+
+    knn_model = KNeighborsClassifier(n_neighbors=5)
+    knn_model.fit(X_train, y_train_enc)
+
+    knn_preds = knn_model.predict(X_test)
+    knn_acc = accuracy_score(y_test_enc, knn_preds)
+
+    print(f"Test Accuracy (KNN, k=5): {knn_acc:.4f}")
+
+    joblib.dump({"model": knn_model, "label_encoder": le}, "knn_model.z")
+    print("KNN model saved as 'knn_model.z'.")
+
+    # ============================================================
+    # Support Vector Machine (SVM)
+    # ============================================================
+    print("\nRunning Support Vector Machine (SVM)...")
+
+    from sklearn.svm import SVC
+
+    svm_model = SVC(kernel="rbf", C=1.0)
+    svm_model.fit(X_train, y_train_enc)
+
+    svm_preds = svm_model.predict(X_test)
+    svm_acc = accuracy_score(y_test_enc, svm_preds)
+
+    print(f"Test Accuracy (SVM, RBF kernel): {svm_acc:.4f}")
+
+    joblib.dump({"model": svm_model, "label_encoder": le}, "svm_model.z")
+    print("SVM model saved as 'svm_model.z'.")
+
+
 if __name__ == "__main__":
     main()
