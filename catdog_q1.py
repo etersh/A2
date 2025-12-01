@@ -4,6 +4,9 @@ import glob
 import numpy as np
 
 from sklearn.preprocessing import LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
@@ -45,7 +48,7 @@ def load_data(path):
 # Main
 
 def main():
-    # 1. Load data (train & test)
+    # Load data
     print("Loading training and testing data...")
     X_train, y_train = load_data("train")
     X_test, y_test = load_data("test")
@@ -53,24 +56,25 @@ def main():
     print("Train shape:", X_train.shape)
     print("Test shape:", X_test.shape)
 
-    # 2. Label Encoding
+    # Label encoding
     le = LabelEncoder()
     y_train_enc = le.fit_transform(y_train)
     y_test_enc = le.transform(y_test)
 
-    # 3. One-hot encoding
+    # One-hot encoding
     y_train_onehot = to_categorical(y_train_enc, num_classes=2)
     y_test_onehot = to_categorical(y_test_enc, num_classes=2)
 
-    # 4. Build Model
-    print("\nBuilding Neural Network (20 → 8 → 2)...")
+    # ============================================================
+    # Neural Network (MLP)
+    # ============================================================
+    print("\nBuilding Neural Network (MLP: 20 → 8 → 2)...")
 
     model = Sequential()
     model.add(Dense(20, activation="sigmoid", input_dim=X_train.shape[1]))
     model.add(Dense(8, activation="sigmoid"))
     model.add(Dense(2, activation="softmax"))
 
-    # optimizer = pure SGD (수업에서 사용)
     optimizer = SGD(learning_rate=0.01)
 
     model.compile(
@@ -79,26 +83,24 @@ def main():
         metrics=["accuracy"]
     )
 
-    # 4. Training
-    print("\nTraining model (epochs=10)...")
+    print("\nTraining Neural Network (epochs=10)...")
     model.fit(X_train, y_train_onehot, epochs=10, batch_size=32, verbose=1)
 
-    # 5. Evaluation
-    loss, acc = model.evaluate(X_test, y_test_onehot, verbose=0)
-    print(f"\nTest Accuracy: {acc:.4f}")
+    nn_loss, nn_acc = model.evaluate(X_test, y_test_onehot, verbose=0)
+    print(f"\nTest Accuracy (Neural Network): {nn_acc:.4f}")
 
-    # 6. Save Model
+    # Save NN model
     model.save("catdog_best_model.h5")
     joblib.dump(le, "catdog_label_encoder.z")
 
-    print("\nModel saved as 'catdog_best_model.h5'")
+    print("\nNeural Network model saved as 'catdog_best_model.h5'")
     print("LabelEncoder saved as 'catdog_label_encoder.z'")
 
-    # 7. Test on internet images
+    # Test NN on internet images
     internet_folder = "internet_test"
 
     if os.path.isdir(internet_folder):
-        print("\nTesting internet images...")
+        print("\nTesting internet images (Neural Network)...")
         for path in glob.glob(os.path.join(internet_folder, "*")):
             img = cv2.imread(path)
             if img is None:
@@ -115,6 +117,22 @@ def main():
             print(f"{os.path.basename(path)} → predicted: {label}")
     else:
         print("\nNo 'internet_test/' folder found.")
+
+    # ============================================================
+    # Logistic Regression
+    # ============================================================
+    print("\nRunning Logistic Regression...")
+
+    log_model = LogisticRegression(max_iter=2000)
+    log_model.fit(X_train, y_train_enc)
+
+    log_preds = log_model.predict(X_test)
+    log_acc = accuracy_score(y_test_enc, log_preds)
+
+    print(f"Test Accuracy (Logistic Regression): {log_acc:.4f}")
+
+    joblib.dump({"model": log_model, "label_encoder": le}, "logistic_model.z")
+    print("Logistic Regression model saved as 'logistic_model.z'.")
 
 
 if __name__ == "__main__":
