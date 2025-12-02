@@ -3,6 +3,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.utils import to_categorical
 import joblib
 
 # Load MNIST CSV (28x28 flattened)
@@ -76,6 +79,40 @@ def run_svm(X_train, y_train, X_test, y_test):
     joblib.dump(model, "mnist_svm.z")
     print("SVM model saved as 'mnist_svm.z'.")
 
+# ---------------------------------------------------------
+# Method 4: Neural Network (MLP: 784 → 128 → 10)
+# ---------------------------------------------------------
+def run_mlp(X_train, y_train, X_test, y_test):
+    print("\nRunning Neural Network (MLP: 784 → 128 → 10)...")
+
+    # one-hot encoding
+    y_train_oh = to_categorical(y_train, num_classes=10)
+    y_test_oh = to_categorical(y_test, num_classes=10)
+
+    # model
+    model = Sequential()
+    model.add(Dense(128, activation="relu", input_shape=(784,)))
+    model.add(Dense(10, activation="softmax"))
+
+    model.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
+    )
+
+    model.fit(
+        X_train, y_train_oh,
+        epochs=10,
+        batch_size=128,
+        verbose=1
+    )
+
+    loss, acc = model.evaluate(X_test, y_test_oh, verbose=0)
+    print(f"Test Accuracy (MLP): {acc:.4f}")
+
+    model.save("mnist_mlp.h5")
+    print("Neural Network model saved as 'mnist_mlp.h5'.")
+
 def main():
     X_train, y_train = load_mnist_csv("mnist_train.csv")
     X_test, y_test = load_mnist_csv("mnist_test.csv")
@@ -85,7 +122,8 @@ def main():
 
     # run_logistic_regression(X_train, y_train, X_test, y_test)
     # run_knn(X_train, y_train, X_test, y_test)
-    run_svm(X_train, y_train, X_test, y_test)
+    # run_svm(X_train, y_train, X_test, y_test)
+    run_mlp(X_train, y_train, X_test, y_test)
 
 if __name__ == "__main__":
     main()
