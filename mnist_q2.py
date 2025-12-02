@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 import joblib
 
 # Load MNIST CSV (28x28 flattened)
@@ -54,6 +55,27 @@ def run_knn(X_train, y_train, X_test, y_test):
     joblib.dump(model, "mnist_knn.z")
     print("KNN model saved as 'mnist_knn.z'.")
 
+# ---------------------------------------------------------
+# Method 3: Support Vector Machine (SVM, RBF Kernel)
+# ---------------------------------------------------------
+def run_svm(X_train, y_train, X_test, y_test):
+    print("\nRunning Support Vector Machine (SVM, RBF kernel)...")
+
+    model = SVC(
+        kernel="rbf",
+        gamma="scale"
+    )
+
+    model.fit(X_train, y_train)
+
+    preds = model.predict(X_test)
+    acc = accuracy_score(y_test, preds)
+
+    print(f"Test Accuracy (SVM, RBF): {acc:.4f}")
+
+    joblib.dump(model, "mnist_svm.z")
+    print("SVM model saved as 'mnist_svm.z'.")
+
 def main():
     X_train, y_train = load_mnist_csv("mnist_train.csv")
     X_test, y_test = load_mnist_csv("mnist_test.csv")
@@ -62,7 +84,8 @@ def main():
     print("Test:", X_test.shape, y_test.shape)
 
     # run_logistic_regression(X_train, y_train, X_test, y_test)
-    run_knn(X_train, y_train, X_test, y_test)
+    # run_knn(X_train, y_train, X_test, y_test)
+    run_svm(X_train, y_train, X_test, y_test)
 
 if __name__ == "__main__":
     main()
